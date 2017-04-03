@@ -1,4 +1,11 @@
 module.exports = {
+  // choose disposal method to use
+  // valid options: FIFO, LIFO
+  // default: FIFO
+  disposalMethod: {
+    2016: 'FIFO',
+    2017: 'FIFO',
+  },
   accounts: [
     {
       source: 'coinbase',

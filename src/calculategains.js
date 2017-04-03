@@ -10,9 +10,8 @@ async function getCurrencies() {
     .map(f => f.distinct);
 }
 
-module.exports.printSummary = async function printSummary() {
+module.exports.printSummary = async function printSummary(config) {
   console.log('\nSummary:');
-
 
   const [summary] = await sequelize.query(`
       select
@@ -52,10 +51,10 @@ module.exports.printSummary = async function printSummary() {
   }
 
   const table = new AsciiTable();
-  table.setHeading('year', 'currency', 'short', 'long', 'total');
-  table.setAlignRight(2);
+  table.setHeading('year', 'currency', 'method', 'short', 'long', 'total');
   table.setAlignRight(3);
   table.setAlignRight(4);
+  table.setAlignRight(5);
 
   for (const year of Object.keys(years)) {
     for (const currency of Object.keys(years[year])) {
@@ -64,6 +63,7 @@ module.exports.printSummary = async function printSummary() {
         table.addRow(
           year,
           currency,
+          config.getDisposalMethod(year),
           row.short.toString(),
           row.long.toString(),
           row.total.toString()
@@ -73,6 +73,7 @@ module.exports.printSummary = async function printSummary() {
     table.addRow(
       year,
       'TOTAL',
+      config.getDisposalMethod(year),
       years[year].total.short.toString(),
       years[year].total.long.toString(),
       years[year].total.total.toString()
@@ -83,7 +84,7 @@ module.exports.printSummary = async function printSummary() {
   console.log(table.toString());
 };
 
-async function calculateGainsForCurrency(currency) {
+async function calculateGainsForCurrency(currency, config) {
   console.log(`\nCalculating gains (${currency})`);
 
   // load all transactions
@@ -98,6 +99,7 @@ async function calculateGainsForCurrency(currency) {
   const holds = [];
   for (const tx of transactions) {
     // console.log(tx.timestamp, tx.type, tx.currency, tx.amount);
+    const method = config.getDisposalMethod(tx.timestamp.getFullYear());
 
     // verify usdPrice
     if (!tx.usdPrice) {
@@ -125,7 +127,8 @@ async function calculateGainsForCurrency(currency) {
           console.log({ amountRemaining: amountRemaining.toString() });
           throw Error('tried to dispose with no available holds: probably missing transactions.');
         }
-        const hold = holds[0];
+        const hold = method === 'FIFO' ? holds[0] : holds[holds.length - 1];
+        assert.ok(hold);
         hold.amount = num(hold.amount);
 
         const disposal = Disposal.build({
@@ -143,7 +146,11 @@ async function calculateGainsForCurrency(currency) {
         } else {
           // dispose of this entire hold and continue loop
           disposal.amount = hold.amount;
-          holds.shift();
+          if (method === 'FIFO') {
+            holds.shift();
+          } else {
+            holds.pop();
+          }
         }
 
         // calculate gain
@@ -164,13 +171,13 @@ async function calculateGainsForCurrency(currency) {
   }
 }
 
-module.exports.calculateGains = async function calculateGains() {
+module.exports.calculateGains = async function calculateGains(config) {
   console.log('\nTruncate gains');
   await Disposal.truncate();
 
   const currencies = await getCurrencies();
 
   for (const currency of currencies) {
-    await calculateGainsForCurrency(currency);
+    await calculateGainsForCurrency(currency, config);
   }
 };

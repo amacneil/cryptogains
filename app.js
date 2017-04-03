@@ -9,6 +9,15 @@ const importCoinbase = require('./src/sources/coinbase');
 const importGDAX = require('./src/sources/gdax');
 const importFile = require('./src/sources/file');
 
+config.getDisposalMethod = function getDisposalMethod(year) {
+  const method = config.disposalMethod[year];
+  if (method !== undefined &&
+      !['FIFO', 'LIFO'].includes(method)) {
+    throw new Error(`invalid disposalMethod for ${year}: ${method}`);
+  }
+  return config.disposalMethod[year] || 'FIFO';
+};
+
 async function importAccounts() {
   for (const account of config.accounts) {
     switch (account.source) {
@@ -30,8 +39,8 @@ async function importAccounts() {
 async function main() {
   await importAccounts();
   await cleanData();
-  await calculateGains();
-  await printSummary();
+  await calculateGains(config);
+  await printSummary(config);
   console.log('\nComplete!');
 }
 
