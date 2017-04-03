@@ -1,5 +1,8 @@
+const AsciiTable = require('ascii-table');
+const assert = require('assert');
 const num = require('num');
 
+const { sequelize } = require('./sequelize');
 const { Account, Disposal, Transaction } = require('./models');
 
 async function getCurrencies() {
@@ -9,32 +12,75 @@ async function getCurrencies() {
 
 module.exports.printSummary = async function printSummary() {
   console.log('\nSummary:');
-  const currencies = await getCurrencies();
-  const startYear = new Date(await Disposal.min('disposedAt')).getFullYear();
-  const endYear = new Date(await Disposal.max('disposedAt')).getFullYear();
 
-  for (let year = startYear; year <= endYear; year += 1) {
-    let annualGains = num(0);
 
-    for (const currency of currencies) {
-      const gains = num(await Disposal.sum('gain', {
-        where: {
-          currency,
-          disposedAt: {
-            $gte: `${year}-01-01`,
-            $lt: `${year + 1}-01-01`,
-          },
-        },
-      }));
+  const [summary] = await sequelize.query(`
+      select
+        extract(year from "disposedAt") as year,
+        currency,
+        (case when "acquiredAt" < "disposedAt" - interval '1 year' then 'long' else 'short' end) as type,
+        sum(gain) as gain
+      from disposals
+      group by 1, 2, 3
+      order by 1, 2, 3
+  `);
 
-      if (!gains.eq(0)) {
-        process.stdout.write(`${year} (${currency}): ${gains}\n`);
-      }
-      annualGains = annualGains.add(gains);
-    }
+  const years = {};
+  for (const row of summary) {
+    years[row.year] = years[row.year] || {};
+    years[row.year].total = years[row.year].total || {
+      short: num(0),
+      long: num(0),
+      total: num(0),
+    };
 
-    process.stdout.write(`${year} (Total): ${annualGains}\n`);
+    // totals per currency
+    years[row.year][row.currency] = years[row.year][row.currency] || {
+      short: num(0),
+      long: num(0),
+      total: num(0),
+    };
+    years[row.year][row.currency][row.type] = num(row.gain);
+    years[row.year][row.currency].total =
+      years[row.year][row.currency].total.add(row.gain);
+
+    // totals for all currencies
+    years[row.year].total[row.type] =
+      years[row.year].total[row.type].add(row.gain);
+    years[row.year].total.total =
+      years[row.year].total.total.add(row.gain);
   }
+
+  const table = new AsciiTable();
+  table.setHeading('year', 'currency', 'short', 'long', 'total');
+  table.setAlignRight(2);
+  table.setAlignRight(3);
+  table.setAlignRight(4);
+
+  for (const year of Object.keys(years)) {
+    for (const currency of Object.keys(years[year])) {
+      const row = years[year][currency];
+      if (currency !== 'total' && !row.total.eq(0)) {
+        table.addRow(
+          year,
+          currency,
+          row.short.toString(),
+          row.long.toString(),
+          row.total.toString()
+        );
+      }
+    }
+    table.addRow(
+      year,
+      'TOTAL',
+      years[year].total.short.toString(),
+      years[year].total.long.toString(),
+      years[year].total.total.toString()
+    );
+    table.addRow();
+  }
+
+  console.log(table.toString());
 };
 
 async function calculateGainsForCurrency(currency) {

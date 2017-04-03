@@ -5,6 +5,7 @@
     "test": "eslint ."
   },
   "dependencies": {
+    "ascii-table": "0.0.9",
     "coinbase": "2.0.6",
     "csv-parse": "1.2.0",
     "debug": "2.6.3",
