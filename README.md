@@ -1,6 +1,6 @@
 # cryptogains
 
-I use this to do my taxes.
+Calculates capital gains from cryptocurrency to help file your taxes.
 
 ```sh
 $ cp config.js.example config.js      # configure accounts
