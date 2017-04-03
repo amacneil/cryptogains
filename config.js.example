@@ -1,0 +1,19 @@
+module.exports = {
+  accounts: [
+    {
+      source: 'coinbase',
+      apiKey: '',
+      apiSecret: '',
+    },
+    {
+      source: 'gdax',
+      apiKey: '',
+      apiSecret: '',
+      apiPassphrase: '',
+    },
+    {
+      source: 'file',
+      path: 'data/external.csv',
+    },
+  ],
+};
