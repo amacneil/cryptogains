@@ -1,0 +1,3 @@
+source,currency,date,type,amount,fee,exchangeCurrency,exchangeValue,usdValue
+# ledger nano BTC example
+ledger,BTC,2017-01-01 00:00:00 UTC,transfer,0.1,0.00036547,,,

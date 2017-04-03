@@ -1,0 +1,25 @@
+{
+  "name": "cryptogains",
+  "private": true,
+  "scripts": {
+    "test": "eslint ."
+  },
+  "dependencies": {
+    "coinbase": "2.0.6",
+    "csv-parse": "1.2.0",
+    "debug": "2.6.3",
+    "gdax": "0.3.1",
+    "isomorphic-fetch": "2.2.1",
+    "localenv": "0.2.2",
+    "num": "0.3.0",
+    "pg": "6.1.5",
+    "safestart": "1.1.0",
+    "sequelize": "3.30.4"
+  },
+  "devDependencies": {
+    "eslint": "3.19.0",
+    "eslint-config-airbnb-base": "11.1.2",
+    "eslint-plugin-import": "2.2.0",
+    "npm-check-updates": "2.10.4"
+  }
+}

@@ -1,0 +1,7 @@
+*.log
+.DS_Store
+.env.local
+accounts.js
+data/*.csv
+node_modules
+npm-debug*

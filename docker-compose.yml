@@ -1,0 +1,13 @@
+app:
+    build: .
+    command: node app.js
+    volumes:
+        - .:/app
+        - /app/node_modules
+    links:
+        - postgres
+
+postgres:
+    image: postgres:9.4
+    ports:
+        - "26001:5432"

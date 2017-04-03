@@ -1,0 +1,20 @@
+{
+  "extends": "airbnb-base",
+  "rules": {
+    "arrow-body-style": "off",
+    "comma-dangle": ["error", "always-multiline"],
+    "new-cap": "off",
+    "no-await-in-loop": "off",
+    "no-console": "off",
+    "no-continue": "off",
+    "no-param-reassign": ["error", { "props": false }],
+    "no-restricted-syntax": [
+      "error",
+      "ForInStatement",
+      "LabeledStatement",
+      "WithStatement"
+    ],
+    "strict": "off"
+  }
+}
+
