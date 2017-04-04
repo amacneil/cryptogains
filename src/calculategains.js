@@ -17,7 +17,7 @@ module.exports.printSummary = async function printSummary(config) {
       select
         extract(year from "disposedAt") as year,
         currency,
-        (case when "acquiredAt" < "disposedAt" - interval '1 year' then 'long' else 'short' end) as type,
+        term,
         sum(gain) as gain
       from disposals
       group by 1, 2, 3
@@ -39,13 +39,13 @@ module.exports.printSummary = async function printSummary(config) {
       long: num(0),
       total: num(0),
     };
-    years[row.year][row.currency][row.type] = num(row.gain);
+    years[row.year][row.currency][row.term] = num(row.gain);
     years[row.year][row.currency].total =
       years[row.year][row.currency].total.add(row.gain);
 
     // totals for all currencies
-    years[row.year].total[row.type] =
-      years[row.year].total[row.type].add(row.gain);
+    years[row.year].total[row.term] =
+      years[row.year].total[row.term].add(row.gain);
     years[row.year].total.total =
       years[row.year].total.total.add(row.gain);
   }

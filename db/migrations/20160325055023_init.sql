@@ -40,6 +40,7 @@ create table "disposals" (
   "sellTransactionId" integer references transactions(id) not null,
   "acquiredAt" timestamptz not null,
   "disposedAt" timestamptz not null,
+  "term" text not null,
   "amount" decimal not null,
   "currency" text not null,
   "costBasis" decimal not null,
