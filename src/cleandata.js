@@ -6,7 +6,7 @@ const { sequelize } = require('./sequelize');
 const { Transaction } = require('./models');
 const { assertNumEq } = require('./helpers');
 
-const BTC_PRICE_ENDPOINT = 'https://api.bitcoinaverage.com/history/USD/per_day_all_time_history.csv';
+const BTC_PRICE_ENDPOINT = 'https://apiv2.bitcoinaverage.com/indices/global/history/BTCUSD?period=alltime&?format=csv';
 const ETH_PRICE_ENDPOINT = 'https://www.etherchain.org/api/statistics/price';
 
 async function reconcileTransfers(amount, { fuzzyAmount }) {
