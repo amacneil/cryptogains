@@ -7,7 +7,7 @@ const { Transaction } = require('./models');
 const { assertNumEq } = require('./helpers');
 
 const BTC_PRICE_ENDPOINT = 'https://apiv2.bitcoinaverage.com/indices/global/history/BTCUSD?period=alltime&format=csv';
-const ETH_PRICE_ENDPOINT = 'https://www.etherchain.org/api/statistics/price';
+const ETH_PRICE_ENDPOINT = 'https://www.etherchain.org/api/price';
 
 async function reconcileTransfers(amount, { fuzzyAmount }) {
   // select all transfers matching amount query
@@ -266,8 +266,7 @@ async function backfillEthereumPrices() {
   const priceData = await res.json();
   const priceMap = {};
 
-  for (const row of priceData.data) {
-    // const parts = row.split(',');
+  for (const row of priceData) {
     const date = row.time.split('T')[0];
     const price = row.usd;
     assert.ok(date);
