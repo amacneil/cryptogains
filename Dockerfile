@@ -1,6 +1,5 @@
 FROM node:8
 
-ENV NPM_CONFIG_LOGLEVEL=http
 ENV PATH /app/node_modules/.bin:$PATH
 
 # install dbmate
@@ -13,8 +12,8 @@ RUN mkdir /app
 WORKDIR /app
 
 # install packages
-COPY package.json /app/
-RUN npm install
+COPY package.json yarn.lock /app/
+RUN yarn install
 
 # copy remaining files
 COPY . /app/
