@@ -2,6 +2,11 @@ FROM node:8
 
 ENV PATH /app/node_modules/.bin:$PATH
 
+# install postgresql-client
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends postgresql-client \
+  && rm -rf /var/lib/apt/lists/*
+
 # install dbmate
 RUN curl -fsSL -o /usr/local/bin/dbmate \
     https://github.com/amacneil/dbmate/releases/download/v1.3.0/dbmate-linux-amd64 \
