@@ -4,7 +4,7 @@ ENV PATH /app/node_modules/.bin:$PATH
 
 # install dbmate
 RUN curl -fsSL -o /usr/local/bin/dbmate \
-    https://github.com/amacneil/dbmate/releases/download/v1.2.1/dbmate-linux-amd64 \
+    https://github.com/amacneil/dbmate/releases/download/v1.3.0/dbmate-linux-amd64 \
   && chmod +x /usr/local/bin/dbmate
 
 # create app directory
