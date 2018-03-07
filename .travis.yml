@@ -1,0 +1,11 @@
+sudo: required
+services:
+  - docker
+install:
+  - cp config.js.example config.js
+  - docker version
+  - docker-compose version
+  - docker-compose pull
+  - docker-compose build
+script:
+  - docker-compose run --rm app yarn test
