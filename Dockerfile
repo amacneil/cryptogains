@@ -1,5 +1,4 @@
-# node version should be kept in sync with package.json
-FROM node:7.7
+FROM node:8
 
 ENV NPM_CONFIG_LOGLEVEL=http
 ENV PATH /app/node_modules/.bin:$PATH
