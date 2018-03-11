@@ -99,6 +99,41 @@ async function autodetectTransfers() {
   }
 }
 
+async function fixGdaxBCHFork() {
+  console.log('\nfixGdaxBCHFork()');
+
+  // when GDAX distributed coins from BCH fork it creates a transfer
+  // transaction with no source
+  // expected date is December 19 2017
+  const t1 = new Date(Date.parse('2017-12-18T00:00:00.000Z'));
+  const t2 = new Date(Date.parse('2017-12-20T00:00:00.000Z'));
+
+  const transfers = await Transaction.findAll({
+    where: {
+      type: 'transfer',
+      currency: 'BCH',
+      source: 'gdax',
+      amount: { $gt: 0 },
+      timestamp: { $between: [t1, t2] },
+      transferTransactionId: null,
+    },
+  });
+
+  if (transfers.length === 0) {
+    return;
+  }
+
+  if (transfers.length > 1) {
+    throw new Error('found more than one potential GDAX BCH fork deposit');
+  }
+
+  // update transaction type to 'receive'
+  process.stdout.write('.');
+  const tx = transfers[0];
+  tx.type = 'receive';
+  await tx.save();
+}
+
 async function printMismatchedTransfers() {
   // find transfers which reference a transferTransactionId,
   // but the corresponding transfer transaction does not reference us
@@ -172,6 +207,9 @@ async function findAndReconcileTransfers() {
   // where neither transaction was already marked as a transfer
   // (e.g. transfers between separate coinbase accounts)
   await autodetectTransfers();
+
+  // fix invalid GDAX transfer for initial grant of BCH fork
+  await fixGdaxBCHFork();
 
   // print any remaining transfers
   await printMismatchedTransfers();
