@@ -6,6 +6,6 @@ install:
   - docker version
   - docker-compose version
   - docker-compose pull
-  - docker-compose build
+  - make build
 script:
-  - docker-compose run --rm app yarn test
+  - make test
