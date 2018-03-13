@@ -14,15 +14,15 @@ module.exports = async function importFile(config) {
 
   const accounts = [];
   async function getAccount(row) {
-    const reference = `${row.source}-${row.currency}`;
+    const reference = `file:${row.source}:${row.currency}`;
 
     if (!accounts[reference]) {
       const [account] = await Account.findOrBuild({
         where: { reference },
       });
       account.currency = row.currency;
-      account.source = row.source;
-      account.name = `External (${row.currency})`;
+      account.source = `file:${row.source}`;
+      account.name = `File (${row.source} - ${row.currency})`;
       await account.save();
 
       accounts[reference] = account;
@@ -35,7 +35,7 @@ module.exports = async function importFile(config) {
   const sourceTypes = new Set();
   for (const row of rows) {
     if (row.source) {
-      sourceTypes.add(row.source);
+      sourceTypes.add(`file:${row.source}`);
     }
   }
 
