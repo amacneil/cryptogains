@@ -19,6 +19,12 @@ module.exports = {
       apiPassphrase: '',
     },
     {
+      source: 'poloniex',
+      name: 'user1',
+      apiKey: '',
+      apiSecret: '',
+    },
+    {
       source: 'file',
       path: 'data/external.csv',
     },
