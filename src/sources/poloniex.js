@@ -116,40 +116,22 @@ async function importDepositsWithdrawals(client) {
       transaction.timestamp = new Date(t.timestamp * 1000);
 
       if (type === 'deposits') {
-        transaction.sourceType = 'deposit';
         transaction.sourceAddress = t.txid;
+        transaction.sourceType = 'deposit';
         transaction.type = 'receive';
         transaction.amount = t.amount;
       } else {
         transaction.sourceType = 'withdrawal';
         transaction.type = 'send';
-        // withdrawal amount includes fee.  we create a separate fee transaction
-        // so that transfers are easier to reconcile
-        transaction.amount = num(t.amount).sub(t.fee).neg().toString();
+        // withdrawal amount explicitly does not include fee
+        // since the poloniex "fee" (miner fee) listed for withdrawals is not always
+        // 100% accurate, we rely on the logic in transfer matching to calculate the
+        // correct fee
+        transaction.amount = num(t.amount).neg().toString();
       }
 
       transaction.sourceAmount = transaction.amount;
       await transaction.save();
-
-      // add separate transaction for withdrawal fee
-      if (type === 'withdrawals') {
-        const feeReference = `${reference}:fee`;
-        const feeTransaction = (await Transaction.findOrBuild({
-          where: {
-            accountId: account.id,
-            reference: feeReference,
-          },
-        }))[0];
-
-        feeTransaction.source = account.source;
-        feeTransaction.currency = account.currency;
-        feeTransaction.timestamp = new Date(t.timestamp * 1000);
-        feeTransaction.sourceType = 'withdrawal';
-        feeTransaction.type = 'fee';
-        feeTransaction.amount = num(t.fee).neg().toString();
-        feeTransaction.sourceAmount = feeTransaction.amount;
-        await feeTransaction.save();
-      }
     }
   }
 }
@@ -237,7 +219,7 @@ async function importTradeHistory(client) {
         baseTransaction.type = t.type;
         baseTransaction.sourceAmount = baseAmount.toString();
         baseTransaction.amount = baseAmountInclFee.toString();
-        baseTransaction.exchangeValue = quoteAmount.toString();
+        baseTransaction.exchangeValue = quoteAmountInclFee.toString();
         baseTransaction.exchangeCurrency = quoteCurrency;
         await baseTransaction.save();
 
@@ -260,7 +242,7 @@ async function importTradeHistory(client) {
         quoteTransaction.type = t.type;
         quoteTransaction.sourceAmount = quoteAmount.toString();
         quoteTransaction.amount = quoteAmountInclFee.toString();
-        quoteTransaction.exchangeValue = baseAmount.toString();
+        quoteTransaction.exchangeValue = baseAmountInclFee.toString();
         quoteTransaction.exchangeCurrency = baseCurrency;
         await quoteTransaction.save();
       }
