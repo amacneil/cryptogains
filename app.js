@@ -7,6 +7,7 @@ const { calculateGains, printSummary } = require('./src/calculategains');
 const cleanData = require('./src/cleandata');
 const importCoinbase = require('./src/sources/coinbase');
 const importGDAX = require('./src/sources/gdax');
+const importPoloniex = require('./src/sources/poloniex');
 const importFile = require('./src/sources/file');
 
 config.getDisposalMethod = function getDisposalMethod(year) {
@@ -26,6 +27,9 @@ async function importAccounts() {
         break;
       case 'gdax':
         await importGDAX(account);
+        break;
+      case 'poloniex':
+        await importPoloniex(account);
         break;
       case 'file':
         await importFile(account);

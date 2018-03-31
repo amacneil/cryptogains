@@ -4,7 +4,7 @@ build:
 
 .PHONY: test
 test:
-	docker-compose run --rm app yarn test
+	docker-compose run --rm --no-deps app yarn test
 
 .PHONY: sh
 sh:
