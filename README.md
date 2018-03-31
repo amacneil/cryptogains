@@ -18,7 +18,8 @@ This tool imports your bitcoin, ethereum, and other cryptocurrency trades from:
 
 * Coinbase
 * GDAX
-* CSV
+* Poloniex
+* Local file (CSV)
 
 It then generates a list of all your disposals, with the cost basis for each disposal, and prints a summary table with short & long term gains for each currency per year.
 
@@ -29,7 +30,7 @@ It then generates a list of all your disposals, with the cost basis for each dis
 
 ### todo
 
-* Add support for other exchanges (currently supported via CSV import)
+* Add support for more exchanges (currently supported via CSV import)
 * Add support for downloading bitcoin address & HD wallet history (currently supported via CSV import)
 * Add support for downloading ethereum address history (including contract output)
 
