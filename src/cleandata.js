@@ -35,14 +35,15 @@ async function reconcileTransfers(amount, { fuzzyAmount }) {
 
     if (fuzzyAmount) {
       // search for opposite amount within 1%
-      const p1 = p0.mul(0.99).toString();
-      const p2 = p0.mul(1.01).toString();
-      if (p1 < p2) {
-        amountQuery = { $between: [p1, p2] };
+      const p1 = p0.mul(0.99);
+      const p2 = p0.mul(1.01);
+
+      if (p1.lt(p2)) {
+        amountQuery = { $between: [p1.toString(), p2.toString()] };
       } else {
         // if p0 is negative, p2 will be lower than p1
-        // important that first value is lower for this query to succeed
-        amountQuery = { $between: [p2, p1] };
+        // important for first first value to be lower for this query to succeed
+        amountQuery = { $between: [p2.toString(), p1.toString()] };
       }
     }
 
