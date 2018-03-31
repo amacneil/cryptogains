@@ -37,7 +37,13 @@ async function reconcileTransfers(amount, { fuzzyAmount }) {
       // search for opposite amount within 1%
       const p1 = p0.mul(0.99).toString();
       const p2 = p0.mul(1.01).toString();
-      amountQuery = { $between: [p1, p2] };
+      if (p1 < p2) {
+        amountQuery = { $between: [p1, p2] };
+      } else {
+        // if p0 is negative, p2 will be lower than p1
+        // important that first value is lower for this query to succeed
+        amountQuery = { $between: [p2, p1] };
+      }
     }
 
     // find matching transaction
