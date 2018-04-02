@@ -215,8 +215,8 @@ async function importTradeHistory(client) {
         baseTransaction.source = baseAccount.source;
         baseTransaction.currency = baseAccount.currency;
         baseTransaction.timestamp = date;
-        baseTransaction.sourceType = t.type;
         baseTransaction.type = t.type;
+        baseTransaction.sourceType = t.type;
         baseTransaction.sourceAmount = baseAmount.toString();
         baseTransaction.amount = baseAmountInclFee.toString();
         baseTransaction.exchangeValue = quoteAmountInclFee.toString();
@@ -238,8 +238,8 @@ async function importTradeHistory(client) {
         quoteTransaction.timestamp = date;
         // quote currency has reverse action applied
         // e.g. we sell BTC to buy ETH
-        quoteTransaction.sourceType = t.type === 'buy' ? 'sell' : 'buy';
-        quoteTransaction.type = t.type;
+        quoteTransaction.type = t.type === 'buy' ? 'sell' : 'buy';
+        quoteTransaction.sourceType = quoteTransaction.type;
         quoteTransaction.sourceAmount = quoteAmount.toString();
         quoteTransaction.amount = quoteAmountInclFee.toString();
         quoteTransaction.exchangeValue = baseAmountInclFee.toString();
