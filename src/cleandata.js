@@ -23,10 +23,10 @@ async function reconcileTransfers(amount, { fuzzyAmount }) {
   for (const transfer of transfers) {
     process.stdout.write('.');
 
-    // search for opposite transaction within 1 hour
+    // search for opposite transaction within 12 hours
     const t0 = transfer.timestamp.getTime();
-    const t1 = new Date(t0 - (60 * 60 * 1000));
-    const t2 = new Date(t0 + (60 * 60 * 1000));
+    const t1 = new Date(t0 - (12 * 60 * 60 * 1000));
+    const t2 = new Date(t0 + (12 * 60 * 60 * 1000));
 
     // we do separate searches for exact or fuzzy amounts
     // so that exact matches are prioritized over fuzzy ones
