@@ -261,17 +261,17 @@ async function backfillBitcoinPrices() {
   }
 }
 
-async function backfillEthereumTradePrices() {
-  console.log('\nbackfillEthereumTradePrices()');
+async function backfillAltcoinTradePrices() {
+  console.log('\nbackfillAltcoinTradePrices()');
   // fill in any missing prices for exchange transactions
   // where we have a corresponding BTC trade with
   // existing USD value
   const txMissingPrices = await Transaction.findAll({
     where: {
-      currency: 'ETH',
+      exchangeCurrency: 'BTC',
       exchangeReference: { $ne: null },
       type: { $ne: 'transfer' },
-      usdPrice: null,
+      usdValue: null,
     },
   });
   for (const baseTx of txMissingPrices) {
@@ -281,18 +281,20 @@ async function backfillEthereumTradePrices() {
       where: {
         currency: baseTx.exchangeCurrency,
         exchangeReference: baseTx.exchangeReference,
+        source: baseTx.source,
       },
     });
 
     // assert sanity
     assert.ok(quoteTx);
     assertNumEq(quoteTx.amount, baseTx.exchangeValue);
+    assertNumEq(quoteTx.exchangeCurrency, baseTx.currency);
     assertNumEq(quoteTx.exchangeValue, baseTx.amount);
 
     // if quoteTx has usdValue, copy to baseTx
     // NOTE: DO NOT copy usdPrice, that doesn't make sense since we are
     // dealing with a different currency now
-    // usdPrice is updated by the Transaction beforeUpdate hook
+    // usdPrice will be updated by the Transaction beforeUpdate hook
     if (quoteTx.usdValue) {
       baseTx.usdValue = quoteTx.usdValue;
       await baseTx.save();
@@ -342,6 +344,6 @@ module.exports = async function cleanData() {
 
   console.log('\nUpdating USD prices');
   await backfillBitcoinPrices();
-  await backfillEthereumTradePrices();
+  await backfillAltcoinTradePrices();
   await backfillEthereumPrices();
 };
