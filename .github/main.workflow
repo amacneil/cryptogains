@@ -1,6 +1,6 @@
 workflow "CI" {
   on = "push"
-  resolves = ["eslint"]
+  resolves = ["lint"]
 }
 
 action "lint" {
