@@ -5,5 +5,5 @@ workflow "CI" {
 
 action "lint" {
   uses = "./"
-  args = "bash -c 'yarn && yarn run lint'"
+  args = "./.github/lint.sh"
 }
