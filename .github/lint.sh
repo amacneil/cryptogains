@@ -6,5 +6,5 @@ if [[ ! -f config.js ]]; then
 fi
 
 set -x
-time yarn
-time yarn run lint
+yarn
+yarn run lint
