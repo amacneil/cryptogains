@@ -3,7 +3,7 @@ workflow "CI" {
   resolves = ["eslint"]
 }
 
-action "eslint" {
+action "lint" {
   uses = "./"
   args = "bash -c 'yarn && yarn run lint'"
 }
