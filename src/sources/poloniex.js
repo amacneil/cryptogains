@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const fetch = require('isomorphic-fetch');
-const formurlencoded = require('form-urlencoded');
+const formurlencoded = require('form-urlencoded').default;
 const num = require('num');
 
 const { Account, Transaction } = require('../models');
