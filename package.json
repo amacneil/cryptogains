@@ -2,7 +2,7 @@
   "name": "cryptogains",
   "private": true,
   "scripts": {
-    "test": "eslint ."
+    "lint": "eslint ."
   },
   "dependencies": {
     "ascii-table": "0.0.9",
