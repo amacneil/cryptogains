@@ -35,7 +35,7 @@ module.exports = async function importCoinbase(config) {
 
   const user = await callAsync(client, 'getCurrentUser');
   console.log(`\nImporting Coinbase user ${user.body.name} (${user.body.email})`);
-  const email = user.body.email;
+  const { email } = user.body;
   assert.ok(email, 'User email is missing, please check API key permissions.');
   const accounts = await callAsync(client, 'getAccounts', {});
 
@@ -61,7 +61,7 @@ module.exports = async function importCoinbase(config) {
     let pagination = null;
     while (pagination === null || pagination.next_uri) {
       const txns = await callAsync(a, 'getTransactions', pagination);
-      pagination = txns.pagination;
+      ({ pagination } = txns);
 
       for (const t of txns.body) {
         process.stdout.write('.');
@@ -105,11 +105,11 @@ module.exports = async function importCoinbase(config) {
         }
 
         // mark transfers so we can reconcile them later
-        if (other.resource === 'account' ||
-            t.type === 'exchange_deposit' ||
-            t.type === 'exchange_withdrawal' ||
-            t.type === 'transfer' ||
-            t.type === 'vault_withdrawal') {
+        if (other.resource === 'account'
+            || t.type === 'exchange_deposit'
+            || t.type === 'exchange_withdrawal'
+            || t.type === 'transfer'
+            || t.type === 'vault_withdrawal') {
           transaction.type = 'transfer';
         }
 

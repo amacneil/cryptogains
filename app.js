@@ -12,8 +12,8 @@ const importFile = require('./src/sources/file');
 
 config.getDisposalMethod = function getDisposalMethod(year) {
   const method = config.disposalMethod[year];
-  if (method !== undefined &&
-      !['FIFO', 'LIFO'].includes(method)) {
+  if (method !== undefined
+      && !['FIFO', 'LIFO'].includes(method)) {
     throw new Error(`invalid disposalMethod for ${year}: ${method}`);
   }
   return config.disposalMethod[year] || 'FIFO';

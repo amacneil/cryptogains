@@ -13,7 +13,8 @@ function callAsync(client, method, ...args) {
         reject(err);
       } else if (res.statusCode !== 200) {
         const httpErr = new Error(
-            `${res.statusCode} ${res.statusMessage}\n${JSON.stringify(res.body)}`);
+          `${res.statusCode} ${res.statusMessage}\n${JSON.stringify(res.body)}`
+        );
         reject(httpErr);
       } else {
         resolve(res);

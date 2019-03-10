@@ -40,14 +40,11 @@ module.exports.printSummary = async function printSummary(config) {
       total: num(0),
     };
     years[row.year][row.currency][row.term] = num(row.gain);
-    years[row.year][row.currency].total =
-      years[row.year][row.currency].total.add(row.gain);
+    years[row.year][row.currency].total = years[row.year][row.currency].total.add(row.gain);
 
     // totals for all currencies
-    years[row.year].total[row.term] =
-      years[row.year].total[row.term].add(row.gain);
-    years[row.year].total.total =
-      years[row.year].total.total.add(row.gain);
+    years[row.year].total[row.term] = years[row.year].total[row.term].add(row.gain);
+    years[row.year].total.total = years[row.year].total.total.add(row.gain);
   }
 
   const table = new AsciiTable();
@@ -104,11 +101,12 @@ async function calculateGainsForCurrency(currency, config) {
     // verify usdPrice
     if (!tx.usdPrice) {
       console.error(
-          '\ntransaction missing usdPrice:',
-          tx.timestamp,
-          tx.type,
-          tx.currency,
-          tx.amount);
+        '\ntransaction missing usdPrice:',
+        tx.timestamp,
+        tx.type,
+        tx.currency,
+        tx.amount
+      );
       return;
     }
 

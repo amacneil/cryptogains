@@ -161,11 +161,11 @@ async function printMismatchedTransfers() {
 
   for (const tx of transfers) {
     console.log(
-        tx.timestamp,
-        tx.source,
-        tx.currency,
-        tx.amount
-      );
+      tx.timestamp,
+      tx.source,
+      tx.currency,
+      tx.amount
+    );
   }
 
   throw new Error('please fix these mismatched transactions');
@@ -188,11 +188,11 @@ async function printUnreconciledTransfers() {
 
   for (const tx of transfers) {
     console.log(
-        tx.timestamp,
-        tx.source,
-        tx.currency,
-        tx.amount
-      );
+      tx.timestamp,
+      tx.source,
+      tx.currency,
+      tx.amount
+    );
   }
 
   throw new Error('please fix these unreconciled transactions');
