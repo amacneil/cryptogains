@@ -8,10 +8,13 @@ const { FIAT_CURRENCIES, assertNumEq } = require('../helpers');
 function callAsync(client, method, ...args) {
   return new Promise((resolve, reject) => {
     client[method].call(client, ...args, (err, res, data) => {
-      res.body = data || res.body;
       if (err) {
         reject(err);
-      } else if (res.statusCode !== 200) {
+        return;
+      }
+
+      res.body = data || res.body;
+      if (res.statusCode !== 200) {
         const httpErr = new Error(
           `${res.statusCode} ${res.statusMessage}\n${JSON.stringify(res.body)}`
         );
@@ -48,10 +51,10 @@ async function importAccounts(client) {
     await account.save();
 
     // import ledger entries
-    let pagination = null;
-    while (pagination === null || pagination.after) {
-      const transactions = await callAsync(client, 'getAccountHistory', a.id, pagination);
-      pagination = { after: transactions.headers['cb-after'] };
+    const args = {};
+    while (args.after !== false) {
+      const transactions = await callAsync(client, 'getAccountHistory', a.id, args);
+      args.after = transactions.headers['cb-after'] || false;
 
       for (const t of transactions.body) {
         process.stdout.write('.');
@@ -78,11 +81,15 @@ async function importAccounts(client) {
           transaction.exchangeReference = [t.details.product_id, t.details.trade_id].join(':');
         } else if (t.type === 'transfer') {
           transaction.type = 'transfer';
+        } else if (t.type === 'conversion') {
+          continue;
         } else if (t.type === 'fee') {
           assert.ok(num(t.amount).lt(0));
           // skip fees, we account for them by adjusting the
           // quote transaction amount in importFills()
           continue;
+        } else {
+          throw new Error(`unknown gdax transaction type ${t.type}`);
         }
 
         await transaction.save();
@@ -91,14 +98,14 @@ async function importAccounts(client) {
   }
 }
 
-async function importFills(client) {
-  console.log('\nImporting GDAX fills');
+async function importFillsForProduct(client, productId) {
+  console.log(`\nImporting GDAX fills (${productId})`);
 
   // import fills and match with ledger entries
-  let pagination = null;
-  while (pagination === null || pagination.after) {
-    const fills = await callAsync(client, 'getFills', { product_id: 'all' }, pagination);
-    pagination = { after: fills.headers['cb-after'] };
+  const args = { product_id: productId };
+  while (args.after !== false) {
+    const fills = await callAsync(client, 'getFills', args);
+    args.after = fills.headers['cb-after'] || false;
 
     for (const f of fills.body) {
       process.stdout.write('.');
@@ -161,6 +168,16 @@ async function importFills(client) {
         }
       }
     }
+  }
+}
+
+async function importFills(client) {
+  const products = await callAsync(client, 'getProducts');
+
+  assert.ok(products.body.length > 0);
+  for (const p of products.body) {
+    assert.ok(p.id);
+    await importFillsForProduct(client, p.id);
   }
 }
 
