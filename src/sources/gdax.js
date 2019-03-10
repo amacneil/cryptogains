@@ -96,7 +96,7 @@ async function importFills(client) {
   // import fills and match with ledger entries
   let pagination = null;
   while (pagination === null || pagination.after) {
-    const fills = await callAsync(client, 'getFills', pagination);
+    const fills = await callAsync(client, 'getFills', { product_id: 'all' }, pagination);
     pagination = { after: fills.headers['cb-after'] };
 
     for (const f of fills.body) {
