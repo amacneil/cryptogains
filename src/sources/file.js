@@ -8,7 +8,11 @@ const { sequelize } = require('../sequelize');
 
 module.exports = async function importFile(config) {
   const fileData = fs.readFileSync(config.path, 'utf8');
-  const rows = parse(fileData, { columns: true, comment: '#' });
+  const rows = parse(fileData, {
+    columns: true,
+    comment: '#',
+    skip_empty_lines: true,
+  });
 
   console.log('\nImporting external transactions');
 
