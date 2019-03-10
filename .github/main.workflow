@@ -1,9 +1,9 @@
 workflow "CI" {
   on = "push"
-  resolves = ["lint"]
+  resolves = ["eslint"]
 }
 
-action "lint" {
+action "eslint" {
   uses = "./"
-  args = "yarn run lint"
+  args = "yarn && yarn run lint"
 }
