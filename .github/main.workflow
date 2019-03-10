@@ -5,5 +5,5 @@ workflow "New workflow" {
 
 action "eslint" {
   uses = "actions/docker/cli@8cdf801b322af5f369e00d85e9cf3a7122f49108"
-  args = "docker-compose run --rm --no-deps app yarn test"
+  args = ".github/ci.sh"
 }
