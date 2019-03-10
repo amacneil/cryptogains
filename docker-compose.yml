@@ -8,6 +8,6 @@ app:
         - postgres
 
 postgres:
-    image: postgres:9.4
+    image: postgres:9.6
     ports:
         - "26001:5432"

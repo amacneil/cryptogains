@@ -50,13 +50,11 @@ module.exports = async function importFile(config) {
       select id from transactions
       where source in (?)
     )`,
-    { replacements: [Array.from(sourceTypes)] }
-  );
+  { replacements: [Array.from(sourceTypes)] });
   await sequelize.query(`
     delete from transactions
     where source in (?)`,
-    { replacements: [Array.from(sourceTypes)] }
-  );
+  { replacements: [Array.from(sourceTypes)] });
 
   for (const row of rows) {
     // console.log(row);
