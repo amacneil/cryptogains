@@ -1,7 +1,7 @@
 const assert = require('assert');
 const num = require('num');
 
-const FIAT_CURRENCIES = ['USD', 'EUR', 'GBP'];
+const FIAT_CURRENCIES = ['USD', 'USDC', 'EUR', 'GBP'];
 module.exports.FIAT_CURRENCIES = FIAT_CURRENCIES;
 
 module.exports.assertNumEq = function assertNumEq(a, b) {
