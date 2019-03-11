@@ -6,7 +6,7 @@ const { sequelize } = require('./sequelize');
 const { Transaction } = require('./models');
 const { assertNumEq } = require('./helpers');
 
-const BTC_PRICE_ENDPOINT = 'https://apiv2.bitcoinaverage.com/indices/global/history/BTCUSD?period=alltime&format=csv';
+const BTC_PRICE_ENDPOINT = 'https://api.coindesk.com/v1/bpi/historical/close.json';
 const ETH_PRICE_ENDPOINT = 'https://www.etherchain.org/api/price';
 
 async function reconcileTransfers(amount, { fuzzyAmount }) {
@@ -226,24 +226,16 @@ async function findAndReconcileTransfers() {
 
 async function backfillBitcoinPrices() {
   console.log('\nbackfillBitcoinPrices()');
-  // fetch historic prices from BitcoinAverage
-  const res = await fetch(BTC_PRICE_ENDPOINT);
+  // fetch historic prices from CoinDesk
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const res = await fetch(`${BTC_PRICE_ENDPOINT}?start=2012-01-01&end=${todayDate}`);
   if (!res.ok) {
     throw new Error(res.statusText);
   }
 
-  const priceData = await res.text();
-  const priceMap = {};
-
-  for (const row of priceData.split('\n')) {
-    const parts = row.split(',');
-    const date = parts[0].split(' ')[0];
-    const price = parts[3];
-
-    if (date && price) {
-      priceMap[date] = price;
-    }
-  }
+  const priceData = await res.json();
+  const priceMap = priceData.bpi;
+  assert.ok(Object.keys(priceMap).length > 0);
 
   // fill in any missing prices
   const txMissingPrices = await Transaction.findAll({
