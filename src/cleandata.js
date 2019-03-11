@@ -138,6 +138,8 @@ async function fixGdaxFork(currency, source, fromDate, toDate) {
   process.stdout.write('.');
   const tx = transfers[0];
   tx.type = 'receive';
+  tx.exchangeCurrency = 'USD';
+  tx.exchangeValue = 0;
   await tx.save();
 }
 
