@@ -11,18 +11,21 @@ module.exports = {
       source: 'coinbase',
       apiKey: '',
       apiSecret: '',
+      importStartDate: '2018-01-01',
     },
     {
       source: 'gdax',
       apiKey: '',
       apiSecret: '',
       apiPassphrase: '',
+      importStartDate: '2018-01-01',
     },
     {
       source: 'poloniex',
       name: 'user1',
       apiKey: '',
       apiSecret: '',
+      importStartDate: '2018-01-01',
     },
     {
       source: 'file',

@@ -64,7 +64,13 @@ module.exports = async function importCoinbase(config) {
       ({ pagination } = txns);
 
       for (const t of txns.body) {
-        process.stdout.write('.');
+        // skip transactions before importStartDate
+        if (Date.parse(t.created_at) < config.importStartDate) {
+          process.stdout.write('.');
+          continue;
+        }
+
+        process.stdout.write('+');
         if (t.status !== 'completed') {
           continue;
         }
