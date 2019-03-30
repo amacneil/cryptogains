@@ -1,3 +1,23 @@
 source,currency,date,type,amount,fee,exchangeCurrency,exchangeValue,usdValue
-# ledger nano BTC example
-ledger,BTC,2017-01-01 00:00:00 UTC,transfer,0.1,0.00036547,,,
+
+# "type" column affects tax treatment, e.g.
+#   buy:      you bought crypto
+#   sell:     you sold crypto (taxable event)
+#   send:     you gifted crypto or bought something in the real world (taxable event)
+#   receive:  you earned crypto (e.g. through mining, or someone sent to you)
+#   transfer: moving money between your own accounts
+
+# example buy (bought 50 ETH for 0.1 BTC)
+changelly,ETH,2018-01-01 00:00:00 UTC,buy,50.0,0,BTC,-0.1,
+
+# example sell (sold 50 ETH for 0.1 BTC)
+changelly,ETH,2018-01-01 00:00:00 UTC,sell,-50,0,BTC,0.1,
+
+# example send (sent 0.5 BTC with 0.001 BTC fee)
+paper,BTC,2018-01-01 00:00:00 UTC,send,-0.5,0.001,,,
+
+# example receive (received 0.5 BTC)
+paper,BTC,2018-01-01 00:00:00 UTC,receive,0.5,0,,,
+
+# example transfer (transfer 0.1 BTC out of paper wallet with 0.001 BTC fee)
+paper,BTC,2018-01-01 00:00:00 UTC,transfer,-0.1,0.001,,,
