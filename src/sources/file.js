@@ -55,7 +55,7 @@ module.exports = async function importFile(config) {
       where source in (?)
     )`,
   { replacements: [Array.from(sourceTypes)] });
-  const [deletedResults, deletedQuery] = await sequelize.query(`
+  const [, deletedQuery] = await sequelize.query(`
     delete from transactions
     where source in (?)`,
   { replacements: [Array.from(sourceTypes)] });
