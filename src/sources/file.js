@@ -55,10 +55,14 @@ module.exports = async function importFile(config) {
       where source in (?)
     )`,
   { replacements: [Array.from(sourceTypes)] });
-  await sequelize.query(`
+  const [deletedResults, deletedQuery] = await sequelize.query(`
     delete from transactions
     where source in (?)`,
   { replacements: [Array.from(sourceTypes)] });
+
+  if (deletedQuery.rowCount > 0) {
+    console.log(`\nWARNING: Deleted ${deletedQuery.rowCount} existing file transactions from ${Array.from(sourceTypes).join(', ')}`);
+  }
 
   for (const row of rows) {
     // console.log(row);
