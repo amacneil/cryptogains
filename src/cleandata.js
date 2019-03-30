@@ -21,7 +21,7 @@ async function reconcileTransfers(amount, { fuzzyAmount }) {
   });
 
   for (const transfer of transfers) {
-    process.stdout.write('.');
+    process.stdout.write('+');
 
     // search for opposite transaction within 12 hours
     const t0 = transfer.timestamp.getTime();
@@ -94,7 +94,7 @@ async function autodetectTransfers() {
   `, { model: Transaction });
 
   for (const t1 of rows) {
-    process.stdout.write('.');
+    process.stdout.write('+');
 
     // check that we have valid IDs available
     assert.strictEqual(t1.id, t1.dataValues.t1Id);
@@ -135,7 +135,7 @@ async function fixGdaxFork(currency, source, fromDate, toDate) {
   }
 
   // update transaction type to 'receive'
-  process.stdout.write('.');
+  process.stdout.write('+');
   const tx = transfers[0];
   tx.type = 'receive';
   tx.exchangeCurrency = 'USD';
@@ -247,7 +247,7 @@ async function backfillBitcoinPrices() {
     },
   });
   for (const transaction of txMissingPrices) {
-    process.stdout.write('.');
+    process.stdout.write('+');
     const date = transaction.timestamp.toISOString().split('T')[0];
     const price = priceMap[date];
     transaction.usdPrice = price;
@@ -270,7 +270,7 @@ async function backfillAltcoinTradePrices() {
     },
   });
   for (const baseTx of txMissingPrices) {
-    process.stdout.write('.');
+    process.stdout.write('+');
     // find matching quote transaction
     const quoteTx = await Transaction.findOne({
       where: {
@@ -324,7 +324,7 @@ async function backfillEthereumPrices() {
     },
   });
   for (const transaction of txMissingPrices) {
-    process.stdout.write('.');
+    process.stdout.write('+');
     const date = transaction.timestamp.toISOString().split('T')[0];
     const price = priceMap[date];
     transaction.usdPrice = price;

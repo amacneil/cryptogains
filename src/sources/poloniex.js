@@ -84,7 +84,9 @@ async function getAccount(client, currency) {
   return accountsCache[reference];
 }
 
-async function importDepositsWithdrawals(client) {
+async function importDepositsWithdrawals(client, config) {
+  console.log(`\nImporting Poloniex deposits/withdrawals (${client.name})`);
+
   // this API method doesn't seem to support any sort of max results per page
   // so let's just grab it all at once for now
   const transactions = await client.returnDepositsWithdrawals({
@@ -94,7 +96,13 @@ async function importDepositsWithdrawals(client) {
 
   for (const type of ['deposits', 'withdrawals']) {
     for (const t of transactions[type]) {
-      process.stdout.write('.');
+      // skip transactions before importStartDate
+      if (new Date(t.timestamp * 1000) < config.importStartDate) {
+        process.stdout.write('.');
+        continue;
+      }
+
+      process.stdout.write('+');
       // console.log(type, t);
 
       const account = await getAccount(client, t.currency);
@@ -136,7 +144,9 @@ async function importDepositsWithdrawals(client) {
   }
 }
 
-async function importTradeHistory(client) {
+async function importTradeHistory(client, config) {
+  console.log(`\nImporting Poloniex trades (${client.name})`);
+
   // returnTradeHistory API call paginates in reverse
   // we request transactions and then reduce the 'end' parameter to fetch more
   // NOTE: this is specifically designed to create overlaps (each page will
@@ -158,7 +168,15 @@ async function importTradeHistory(client) {
 
     for (const market of Object.keys(transactions)) {
       for (const t of transactions[market]) {
-        process.stdout.write('.');
+        const date = new Date(`${t.date} UTC`);
+
+        // skip transactions before importStartDate
+        if (date < config.importStartDate) {
+          process.stdout.write('.');
+          continue;
+        }
+
+        process.stdout.write('+');
         // console.log(market, t);
 
         // if any transactions have an earlier date than our 'end'
@@ -166,7 +184,6 @@ async function importTradeHistory(client) {
         // so we set a new 'end' and continue looking for more results
         // since we overlap each page of results, the last iteration will only
         // have results where timestamp === end
-        const date = new Date(`${t.date} UTC`);
         const timestamp = Math.floor(date.getTime() / 1000);
         if (timestamp < end) {
           end = Math.min(end, timestamp);
@@ -253,8 +270,6 @@ async function importTradeHistory(client) {
 module.exports = async function importPoloniex(config) {
   const client = new PoloniexClient(config);
 
-  console.log(`\nImporting Poloniex (${client.name})`);
-
-  await importDepositsWithdrawals(client);
-  await importTradeHistory(client);
+  await importDepositsWithdrawals(client, config);
+  await importTradeHistory(client, config);
 };

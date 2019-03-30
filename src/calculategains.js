@@ -117,7 +117,7 @@ async function calculateGainsForCurrency(currency, config) {
       // sell or send: dispose of holds
       let amountRemaining = num(tx.amount).abs();
       while (amountRemaining.gt(0)) {
-        process.stdout.write('.');
+        process.stdout.write('+');
 
         if (holds.length === 0) {
           process.stdout.write('\n');

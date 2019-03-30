@@ -21,6 +21,11 @@ config.getDisposalMethod = function getDisposalMethod(year) {
 
 async function importAccounts() {
   for (const account of config.accounts) {
+    // parse importStartDate
+    if (account.importStartDate) {
+      account.importStartDate = Date.parse(`${account.importStartDate} UTC`);
+    }
+
     switch (account.source) {
       case 'coinbase':
         await importCoinbase(account);

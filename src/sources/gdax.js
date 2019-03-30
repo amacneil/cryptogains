@@ -26,7 +26,7 @@ function callAsync(client, method, ...args) {
   });
 }
 
-async function importAccounts(client) {
+async function importAccounts(client, config) {
   const accounts = await callAsync(client, 'getAccounts');
 
   for (const a of accounts.body) {
@@ -57,7 +57,13 @@ async function importAccounts(client) {
       args.after = transactions.headers['cb-after'] || false;
 
       for (const t of transactions.body) {
-        process.stdout.write('.');
+        // skip transactions before importStartDate
+        if (Date.parse(t.created_at) < config.importStartDate) {
+          process.stdout.write('.');
+          continue;
+        }
+
+        process.stdout.write('+');
         // console.log(t);
 
         const transaction = (await Transaction.findOrBuild({
@@ -98,7 +104,7 @@ async function importAccounts(client) {
   }
 }
 
-async function importFillsForProduct(client, productId) {
+async function importFillsForProduct(client, config, productId) {
   console.log(`\nImporting GDAX fills (${productId})`);
 
   // import fills and match with ledger entries
@@ -108,7 +114,13 @@ async function importFillsForProduct(client, productId) {
     args.after = fills.headers['cb-after'] || false;
 
     for (const f of fills.body) {
-      process.stdout.write('.');
+      // skip transactions before importStartDate
+      if (Date.parse(f.created_at) < config.importStartDate) {
+        process.stdout.write('.');
+        continue;
+      }
+
+      process.stdout.write('+');
 
       // if we buy BTC, BTC will be positive, and vice versa
       const baseTotal = f.side === 'buy' ? num(f.size) : num(f.size).neg();
@@ -171,13 +183,13 @@ async function importFillsForProduct(client, productId) {
   }
 }
 
-async function importFills(client) {
+async function importFills(client, config) {
   const products = await callAsync(client, 'getProducts');
 
   assert.ok(products.body.length > 0);
   for (const p of products.body) {
     assert.ok(p.id);
-    await importFillsForProduct(client, p.id);
+    await importFillsForProduct(client, config, p.id);
   }
 }
 
@@ -190,6 +202,6 @@ module.exports = async function importGDAX(config) {
 
   console.log('\nImporting GDAX');
 
-  await importAccounts(client);
-  await importFills(client);
+  await importAccounts(client, config);
+  await importFills(client, config);
 };

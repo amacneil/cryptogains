@@ -66,7 +66,7 @@ module.exports = async function importFile(config) {
       continue;
     }
 
-    process.stdout.write('.');
+    process.stdout.write('+');
     const account = await getAccount(row);
 
     const transaction = Transaction.build({
