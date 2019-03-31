@@ -87,7 +87,7 @@ const Transaction = sequelize.define('transaction', {
         this.usdValue = parseFloat(this.exchangeValue).toFixed(2);
       }
 
-      if (!this.usdValue) {
+      if (!this.usdValue || num(this.amount).eq(0)) {
         this.usdPrice = null;
       } else {
         // if usdValue is known, then calculate price per unit
