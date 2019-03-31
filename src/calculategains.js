@@ -328,9 +328,13 @@ async function calculateGainsForCurrency(currency, config) {
   }
 }
 
-module.exports.calculateGains = async function calculateGains(config) {
+module.exports.truncateGains = async function truncateGains() {
   console.log('\nTruncate gains');
   await Disposal.truncate();
+};
+
+module.exports.calculateGains = async function calculateGains(config) {
+  await module.exports.truncateGains();
 
   const currencies = await getCurrencies();
 

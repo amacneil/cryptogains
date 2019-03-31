@@ -3,7 +3,7 @@
 require('./init');
 
 const config = require('./config');
-const { calculateGains, printSummary } = require('./src/calculategains');
+const { calculateGains, truncateGains, printSummary } = require('./src/calculategains');
 const cleanData = require('./src/cleandata');
 const importCoinbase = require('./src/sources/coinbase');
 const importGDAX = require('./src/sources/gdax');
@@ -61,6 +61,7 @@ async function importAccounts() {
 }
 
 async function main() {
+  await truncateGains();
   await importAccounts();
   await cleanData();
   await calculateGains(config);
