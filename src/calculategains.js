@@ -171,7 +171,6 @@ function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
   }
 
   // search for lot to sell which causes lowest tax due
-  let lowestTaxAmount;
   let lowestTaxPerUnit;
   let lowestTaxHold;
 
@@ -191,7 +190,6 @@ function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
 
     // calculate estimated tax for this hold
     let estimatedTaxDue;
-    let estimatedTaxTerm;
     if (isLongTerm(hold.timestamp)) {
       estimatedTaxDue = gain.mul(method.longTermTaxRate);
     } else {
@@ -210,7 +208,6 @@ function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
     //   estimatedTaxDue.toString());
 
     if (lowestTaxPerUnit === undefined || lowestTaxPerUnit.gt(estimatedTaxPerUnit)) {
-      lowestTaxAmount = estimatedTaxDue;
       lowestTaxPerUnit = estimatedTaxPerUnit;
       lowestTaxHold = hold;
     }
@@ -218,7 +215,7 @@ function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
 
   // console.log('found:',
   //   isLongTerm(lowestTaxHold.timestamp) ? 'long' : 'short',
-  //   lowestTaxAmount.toString(),
+  //   lowestTaxPerUnit.toString(),
   //   lowestTaxHold.timestamp,
   //   tx.usdPrice,
   //   lowestTaxHold.usdPrice,
@@ -306,7 +303,7 @@ async function calculateGainsForCurrency(currency, config) {
 
           // remove this hold from holds array
           const prevHoldsLength = holds.length;
-          var holdIndex = holds.indexOf(hold);
+          const holdIndex = holds.indexOf(hold);
           if (holdIndex >= 0) {
             holds.splice(holdIndex, 1);
           }

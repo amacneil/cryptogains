@@ -14,7 +14,7 @@ config.getDisposalMethod = function getDisposalMethod(year) {
   let method = config.disposalMethod[year];
 
   // convert string into object
-  if (typeof(method) === 'string' || typeof(method) === 'undefined') {
+  if (typeof method === 'string' || typeof method === 'undefined') {
     method = { method };
   }
 
