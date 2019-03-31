@@ -1,14 +1,17 @@
 module.exports = {
   // choose disposal method to use
-  // valid options: FIFO, LIFO
+  // valid options: FIFO, LIFO, TaxMin, Estimate
   // default: FIFO
   disposalMethod: {
     // 2016: 'FIFO',
     // 2017: 'FIFO',
     // 2018: 'FIFO',
 
-    // BETA: Optimize estimated taxes by selling specific lots
-    // 2018: { method: 'Minimize', shortTermTaxRate: '0.35', longTermTaxRate: '0.15' },
+    // BETA: TaxMin (prioritize in order: ST loss, LT loss, LT gain, ST gain)
+    // 2018: 'TaxMin',
+
+    // BETA: Sell lot with lowest estimated tax liability
+    // 2018: { method: 'Estimate', shortTermTaxRate: '0.35', longTermTaxRate: '0.15' },
   },
   accounts: [
     {

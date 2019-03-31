@@ -13,25 +13,20 @@ const importFile = require('./src/sources/file');
 config.getDisposalMethod = function getDisposalMethod(year) {
   let method = config.disposalMethod[year];
 
-  // default to FIFO
-  if (method === undefined) {
-    method = 'FIFO';
-  }
-
-  // convert into object
-  if (['FIFO', 'LIFO'].includes(method)) {
+  // convert string into object
+  if (typeof(method) === 'string' || typeof(method) === 'undefined') {
     method = { method };
   }
 
-  // validate
-  if (!['FIFO', 'LIFO', 'Minimize'].includes(method.method)) {
-    throw new Error(`invalid disposalMethod for ${year}: ${method.method}`);
+  // default to FIFO
+  if (!method.method) {
+    method.method = 'FIFO';
   }
 
-  if (method.method === 'Minimize') {
+  if (method.method === 'Estimate') {
     for (const prop of ['shortTermTaxRate', 'longTermTaxRate']) {
       if (!method[prop] || method[prop] <= 0 || method[prop] >= 1) {
-        throw new Error(`invalid minimize ${prop} for ${year}: ${method[prop]}`);
+        throw new Error(`invalid ${prop} for ${year}: ${method[prop]}`);
       }
     }
   }

@@ -81,9 +81,80 @@ module.exports.printSummary = async function printSummary(config) {
   console.log(table.toString());
 };
 
-// calculate the estimated tax due for each hold,
+// find hold in specific category (short/long, loss/gain) with higest cost basis
+function findSpecificLot(tx, holds, term, gainOrLoss) {
+  const shortTermCutoffDate = new Date(tx.timestamp.toString());
+  shortTermCutoffDate.setFullYear(shortTermCutoffDate.getFullYear() - 1);
+
+  function isLongTerm(timestamp) {
+    return timestamp < shortTermCutoffDate;
+  }
+
+  if (!['short', 'long'].includes(term)) {
+    throw new Error(`invalid term ${term}`);
+  }
+
+  if (!['gain', 'loss'].includes(gainOrLoss)) {
+    throw new Error(`invalid gainOrLoss ${gainOrLoss}`);
+  }
+
+  let highestUsdPrice;
+  let bestHold = null;
+  for (const hold of holds) {
+    // skip if incorrect term
+    if (term === 'short' && isLongTerm(hold.timestamp)) {
+      continue;
+    }
+    if (term === 'long' && !isLongTerm(hold.timestamp)) {
+      continue;
+    }
+
+    // skip if incorrect gainOrLoss
+    const usdPriceGain = num(tx.usdPrice).sub(hold.usdPrice);
+    if (gainOrLoss === 'gain' && usdPriceGain.lt(0)) {
+      continue;
+    }
+    if (gainOrLoss === 'loss' && usdPriceGain.gte(0)) {
+      continue;
+    }
+
+    // search for highest usdPrice (cost basis per unit)
+    if (highestUsdPrice === undefined || highestUsdPrice.lt(hold.usdPrice)) {
+      bestHold = hold;
+      highestUsdPrice = num(hold.usdPrice);
+    }
+  }
+
+  // if we exhaused all holds in this category this will just return null
+  return bestHold;
+}
+
+// TaxMin: https://www.betterment.com/resources/lowering-your-tax-bill-by-improving-our-cost-basis-accounting-methods/
+// Sell in following order:
+// 1. Short-term losses
+// 2. Long-term losses
+// 3. Long-term gains
+// 4. Short-term gains
+function findHoldTaxMin(tx, holds) {
+  let hold;
+
+  hold = findSpecificLot(tx, holds, 'short', 'loss');
+  if (hold) return hold;
+
+  hold = findSpecificLot(tx, holds, 'long', 'loss');
+  if (hold) return hold;
+
+  hold = findSpecificLot(tx, holds, 'long', 'gain');
+  if (hold) return hold;
+
+  hold = findSpecificLot(tx, holds, 'short', 'gain');
+  if (hold) return hold;
+
+  return null;
+}
+
+// Estimate strategy: calculate the estimated tax due for each hold,
 // and select the hold which causes the lowest tax liability
-// this will prioritize short and long term losses over gains
 function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
   // console.log('\nfindMinimizedTaxHold:',
   //   tx.timestamp,
@@ -207,10 +278,12 @@ async function calculateGainsForCurrency(currency, config) {
           hold = holds[0];
         } else if (method.method === 'LIFO') {
           hold = holds[holds.length - 1];
-        } else if (method.method === 'Minimize') {
+        } else if (method.method === 'TaxMin') {
+          hold = findHoldTaxMin(tx, holds);
+        } else if (method.method === 'Estimate') {
           hold = findMinimizedTaxHold(amountRemaining, tx, holds, method);
         } else {
-          throw new Error(`unknown disposal method: ${method.method}`);
+          throw new Error(`invalid disposalMethod for ${tx.timestamp.getFullYear()}: ${method.method}`);
         }
         assert.ok(hold);
         hold.amount = num(hold.amount);
