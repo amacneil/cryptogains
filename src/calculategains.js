@@ -101,6 +101,7 @@ function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
 
   // search for lot to sell which causes lowest tax due
   let lowestTaxAmount;
+  let lowestTaxPerUnit;
   let lowestTaxHold;
 
   for (const hold of holds) {
@@ -126,6 +127,9 @@ function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
       estimatedTaxDue = gain.mul(method.shortTermTaxRate);
     }
 
+    // normalize estimated tax per unit so that we don't bias selling small lots
+    const estimatedTaxPerUnit = estimatedTaxDue.div(disposalAmount);
+
     // console.log(
     //   isLongTerm(hold.timestamp) ? 'long' : 'short',
     //   hold.timestamp,
@@ -134,8 +138,9 @@ function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
     //   gain.toString(),
     //   estimatedTaxDue.toString());
 
-    if (lowestTaxAmount === undefined || lowestTaxAmount.gt(estimatedTaxDue)) {
+    if (lowestTaxPerUnit === undefined || lowestTaxPerUnit.gt(estimatedTaxPerUnit)) {
       lowestTaxAmount = estimatedTaxDue;
+      lowestTaxPerUnit = estimatedTaxPerUnit;
       lowestTaxHold = hold;
     }
   }
