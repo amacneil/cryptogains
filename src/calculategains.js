@@ -5,6 +5,11 @@ const num = require('num');
 const { sequelize } = require('./sequelize');
 const { Account, Disposal, Transaction } = require('./models');
 
+// rates used to estimate taxes for 'Minimize' disposal strategy
+// defaults should work fine for most people
+const SHORT_TERM_TAX_RATE = '0.35';
+const LONG_TERM_TAX_RATE = '0.15';
+
 async function getCurrencies() {
   return Account.aggregate('currency', 'distinct', { plain: false })
     .map(f => f.distinct);
@@ -81,6 +86,67 @@ module.exports.printSummary = async function printSummary(config) {
   console.log(table.toString());
 };
 
+// calculate the estimated tax due for each hold,
+// and select the hold which causes the lowest tax liability
+// this will prioritize short and long term losses over gains
+function findMinimizedTaxHold(amountRemaining, tx, holds) {
+  // console.log('\nfindMinimizedTaxHold:',
+  //   amountRemaining.toString(),
+  //   tx.timestamp,
+  //   `${holds.length} holds`);
+
+  const shortTermCutoffDate = new Date(tx.timestamp.toString());
+  shortTermCutoffDate.setFullYear(shortTermCutoffDate.getFullYear() - 1);
+
+  // search for lot to sell which causes lowest tax due
+  let lowestTaxAmount;
+  let lowestTaxHold;
+
+  for (const hold of holds) {
+    // calculate amount we could dispose of with this hold
+    let disposalAmount;
+    if (num(hold.amount).gt(amountRemaining)) {
+      disposalAmount = amountRemaining;
+    } else {
+      disposalAmount = num(hold.amount);
+    }
+
+    // calculate potential gain for this hold
+    const costBasis = disposalAmount.mul(hold.usdPrice);
+    const salePrice = disposalAmount.mul(tx.usdPrice);
+    const gain = salePrice.sub(costBasis);
+
+    // calculate estimated tax for this hold
+    let estimatedTaxDue;
+    if (hold.timestamp < shortTermCutoffDate) {
+      estimatedTaxDue = gain.mul(LONG_TERM_TAX_RATE);
+      // console.log('long-term',
+      //   hold.timestamp,
+      //   disposalAmount.toString(),
+      //   gain.toString(),
+      //   estimatedTaxDue.toString());
+    } else {
+      estimatedTaxDue = gain.mul(SHORT_TERM_TAX_RATE);
+      // console.log('short-term',
+      //   hold.timestamp,
+      //   disposalAmount.toString(),
+      //   gain.toString(),
+      //   estimatedTaxDue.toString());
+    }
+
+    if (lowestTaxAmount === undefined || lowestTaxAmount.gt(estimatedTaxDue)) {
+      lowestTaxAmount = estimatedTaxDue;
+      lowestTaxHold = hold;
+    }
+  }
+
+  // console.log('found:',
+  //   lowestTaxAmount.toString(),
+  //   lowestTaxHold.timestamp,
+  //   lowestTaxHold.amount);
+  return lowestTaxHold;
+}
+
 async function calculateGainsForCurrency(currency, config) {
   console.log(`\nCalculating gains (${currency})`);
 
@@ -96,7 +162,6 @@ async function calculateGainsForCurrency(currency, config) {
   const holds = [];
   for (const tx of transactions) {
     // console.log(tx.timestamp, tx.type, tx.currency, tx.amount);
-    const method = config.getDisposalMethod(tx.timestamp.getFullYear());
 
     // verify usdPrice
     if (!tx.usdPrice) {
@@ -125,7 +190,19 @@ async function calculateGainsForCurrency(currency, config) {
           console.log({ amountRemaining: amountRemaining.toString() });
           throw Error('tried to dispose with no available holds: probably missing transactions.');
         }
-        const hold = method === 'FIFO' ? holds[0] : holds[holds.length - 1];
+
+        // find hold according to disposal strategy for this year
+        const method = config.getDisposalMethod(tx.timestamp.getFullYear());
+        let hold;
+        if (method === 'FIFO') {
+          hold = holds[0];
+        } else if (method === 'LIFO') {
+          hold = holds[holds.length - 1];
+        } else if (method === 'Minimize') {
+          hold = findMinimizedTaxHold(amountRemaining, tx, holds);
+        } else {
+          throw new Error(`unknown disposal method: ${method}`);
+        }
         assert.ok(hold);
         hold.amount = num(hold.amount);
 
@@ -144,11 +221,14 @@ async function calculateGainsForCurrency(currency, config) {
         } else {
           // dispose of this entire hold and continue loop
           disposal.amount = hold.amount;
-          if (method === 'FIFO') {
-            holds.shift();
-          } else {
-            holds.pop();
+
+          // remove this hold from holds array
+          const prevHoldsLength = holds.length;
+          var holdIndex = holds.indexOf(hold);
+          if (holdIndex >= 0) {
+            holds.splice(holdIndex, 1);
           }
+          assert.ok(prevHoldsLength === holds.length + 1);
         }
 
         // calculate gain
