@@ -250,6 +250,7 @@ async function backfillBitcoinPrices() {
     process.stdout.write('+');
     const date = transaction.timestamp.toISOString().split('T')[0];
     const price = priceMap[date];
+    assert.ok(price);
     transaction.usdPrice = price;
     transaction.usdValue = (price * transaction.amount).toFixed(2);
     await transaction.save();
