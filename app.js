@@ -11,12 +11,32 @@ const importPoloniex = require('./src/sources/poloniex');
 const importFile = require('./src/sources/file');
 
 config.getDisposalMethod = function getDisposalMethod(year) {
-  const method = config.disposalMethod[year];
-  if (method !== undefined
-      && !['FIFO', 'LIFO'].includes(method)) {
-    throw new Error(`invalid disposalMethod for ${year}: ${method}`);
+  let method = config.disposalMethod[year];
+
+  // default to FIFO
+  if (method === undefined) {
+    method = 'FIFO';
   }
-  return config.disposalMethod[year] || 'FIFO';
+
+  // convert into object
+  if (['FIFO', 'LIFO'].includes(method)) {
+    method = { method };
+  }
+
+  // validate
+  if (!['FIFO', 'LIFO', 'Minimize'].includes(method.method)) {
+    throw new Error(`invalid disposalMethod for ${year}: ${method.method}`);
+  }
+
+  if (method.method === 'Minimize') {
+    for (const prop of ['shortTermTaxRate', 'longTermTaxRate']) {
+      if (!method[prop] || method[prop] <= 0 || method[prop] >= 1) {
+        throw new Error(`invalid minimize ${prop} for ${year}: ${method[prop]}`);
+      }
+    }
+  }
+
+  return method;
 };
 
 async function importAccounts() {

@@ -5,11 +5,6 @@ const num = require('num');
 const { sequelize } = require('./sequelize');
 const { Account, Disposal, Transaction } = require('./models');
 
-// rates used to estimate taxes for 'Minimize' disposal strategy
-// defaults should work fine for most people
-const SHORT_TERM_TAX_RATE = '0.35';
-const LONG_TERM_TAX_RATE = '0.15';
-
 async function getCurrencies() {
   return Account.aggregate('currency', 'distinct', { plain: false })
     .map(f => f.distinct);
@@ -65,7 +60,7 @@ module.exports.printSummary = async function printSummary(config) {
         table.addRow(
           year,
           currency,
-          config.getDisposalMethod(year),
+          config.getDisposalMethod(year).method,
           row.short.toString(),
           row.long.toString(),
           row.total.toString()
@@ -75,7 +70,7 @@ module.exports.printSummary = async function printSummary(config) {
     table.addRow(
       year,
       'TOTAL',
-      config.getDisposalMethod(year),
+      config.getDisposalMethod(year).method,
       years[year].total.short.toString(),
       years[year].total.long.toString(),
       years[year].total.total.toString()
@@ -89,14 +84,20 @@ module.exports.printSummary = async function printSummary(config) {
 // calculate the estimated tax due for each hold,
 // and select the hold which causes the lowest tax liability
 // this will prioritize short and long term losses over gains
-function findMinimizedTaxHold(amountRemaining, tx, holds) {
+function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
   // console.log('\nfindMinimizedTaxHold:',
-  //   amountRemaining.toString(),
   //   tx.timestamp,
+  //   tx.amount,
+  //   amountRemaining.toString(),
+  //   tx.usdPrice,
   //   `${holds.length} holds`);
 
   const shortTermCutoffDate = new Date(tx.timestamp.toString());
   shortTermCutoffDate.setFullYear(shortTermCutoffDate.getFullYear() - 1);
+
+  function isLongTerm(timestamp) {
+    return timestamp < shortTermCutoffDate;
+  }
 
   // search for lot to sell which causes lowest tax due
   let lowestTaxAmount;
@@ -118,21 +119,20 @@ function findMinimizedTaxHold(amountRemaining, tx, holds) {
 
     // calculate estimated tax for this hold
     let estimatedTaxDue;
-    if (hold.timestamp < shortTermCutoffDate) {
-      estimatedTaxDue = gain.mul(LONG_TERM_TAX_RATE);
-      // console.log('long-term',
-      //   hold.timestamp,
-      //   disposalAmount.toString(),
-      //   gain.toString(),
-      //   estimatedTaxDue.toString());
+    let estimatedTaxTerm;
+    if (isLongTerm(hold.timestamp)) {
+      estimatedTaxDue = gain.mul(method.longTermTaxRate);
     } else {
-      estimatedTaxDue = gain.mul(SHORT_TERM_TAX_RATE);
-      // console.log('short-term',
-      //   hold.timestamp,
-      //   disposalAmount.toString(),
-      //   gain.toString(),
-      //   estimatedTaxDue.toString());
+      estimatedTaxDue = gain.mul(method.shortTermTaxRate);
     }
+
+    // console.log(
+    //   isLongTerm(hold.timestamp) ? 'long' : 'short',
+    //   hold.timestamp,
+    //   hold.usdPrice,
+    //   disposalAmount.toString(),
+    //   gain.toString(),
+    //   estimatedTaxDue.toString());
 
     if (lowestTaxAmount === undefined || lowestTaxAmount.gt(estimatedTaxDue)) {
       lowestTaxAmount = estimatedTaxDue;
@@ -141,9 +141,13 @@ function findMinimizedTaxHold(amountRemaining, tx, holds) {
   }
 
   // console.log('found:',
+  //   isLongTerm(lowestTaxHold.timestamp) ? 'long' : 'short',
   //   lowestTaxAmount.toString(),
   //   lowestTaxHold.timestamp,
+  //   tx.usdPrice,
+  //   lowestTaxHold.usdPrice,
   //   lowestTaxHold.amount);
+
   return lowestTaxHold;
 }
 
@@ -192,16 +196,16 @@ async function calculateGainsForCurrency(currency, config) {
         }
 
         // find hold according to disposal strategy for this year
-        const method = config.getDisposalMethod(tx.timestamp.getFullYear());
         let hold;
-        if (method === 'FIFO') {
+        const method = config.getDisposalMethod(tx.timestamp.getFullYear());
+        if (method.method === 'FIFO') {
           hold = holds[0];
-        } else if (method === 'LIFO') {
+        } else if (method.method === 'LIFO') {
           hold = holds[holds.length - 1];
-        } else if (method === 'Minimize') {
-          hold = findMinimizedTaxHold(amountRemaining, tx, holds);
+        } else if (method.method === 'Minimize') {
+          hold = findMinimizedTaxHold(amountRemaining, tx, holds, method);
         } else {
-          throw new Error(`unknown disposal method: ${method}`);
+          throw new Error(`unknown disposal method: ${method.method}`);
         }
         assert.ok(hold);
         hold.amount = num(hold.amount);

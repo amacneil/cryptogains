@@ -3,8 +3,12 @@ module.exports = {
   // valid options: FIFO, LIFO
   // default: FIFO
   disposalMethod: {
-    2016: 'FIFO',
-    2017: 'FIFO',
+    // 2016: 'FIFO',
+    // 2017: 'FIFO',
+    // 2018: 'FIFO',
+
+    // BETA: Optimize estimated taxes by selling specific lots
+    // 2018: { method: 'Minimize', shortTermTaxRate: '0.35', longTermTaxRate: '0.15' },
   },
   accounts: [
     {
