@@ -16,7 +16,7 @@
     "num": "0.3.0",
     "pg": "6.4.2",
     "safestart": "1.1.0",
-    "sequelize": "3.30.4"
+    "sequelize": "5.15.1"
   },
   "devDependencies": {
     "eslint": "5.15.1",
