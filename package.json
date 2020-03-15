@@ -7,7 +7,7 @@
   "dependencies": {
     "ascii-table": "0.0.9",
     "coinbase": "2.0.8",
-    "csv-parse": "4.3.3",
+    "csv-parse": "4.4.6",
     "debug": "4.1.1",
     "form-urlencoded": "3.0.0",
     "gdax": "0.8.0",
