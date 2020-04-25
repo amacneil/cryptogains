@@ -1,13 +1,17 @@
-app:
-    build: .
-    command: node app.js
-    volumes:
-        - .:/app
-        - /app/node_modules
-    links:
-        - postgres
+version: '2.3'
+services:
+  app:
+      build: .
+      command: node app.js
+      volumes:
+          - .:/app
+          - /app/node_modules
+      depends_on:
+          - postgres
 
-postgres:
-    image: postgres:9.6
-    ports:
-        - "26001:5432"
+  postgres:
+      image: postgres:9.6
+      environment:
+          POSTGRES_PASSWORD: postgres
+      ports:
+          - "26001:5432"
