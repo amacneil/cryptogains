@@ -21,6 +21,7 @@ module.exports = async function importCoinbase(config) {
   const client = new Client({
     apiKey: config.apiKey,
     apiSecret: config.apiSecret,
+    caFile: null,
   });
 
   // cache users to speed things up
