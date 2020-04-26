@@ -109,6 +109,12 @@ module.exports = async function importFile(config) {
       feeTx.source = account.source;
       feeTx.amount = feeTx.sourceAmount;
       feeTx.currency = account.currency;
+
+      // add usdValue to fee if known
+      if (transaction.usdPrice) {
+        feeTx.usdPrice = transaction.usdPrice;
+        feeTx.usdValue = num(transaction.usdPrice).mul(feeTx.amount).toString();
+      }
       await feeTx.save();
     }
   }
