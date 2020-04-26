@@ -11,7 +11,7 @@ async function getCurrencies() {
 }
 
 module.exports.printSummary = async function printSummary(config) {
-  console.log('\nSummary:');
+  console.log('\n\nSummary:');
 
   const [summary] = await sequelize.query(`
       select
