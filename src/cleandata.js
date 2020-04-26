@@ -34,9 +34,9 @@ async function reconcileTransfers(amount, { fuzzyAmount }) {
     let amountQuery = p0.toString();
 
     if (fuzzyAmount) {
-      // search for opposite amount within 1%
-      const p1 = p0.mul(0.99);
-      const p2 = p0.mul(1.01);
+      // search for opposite amount within 4%
+      const p1 = p0.mul(0.96);
+      const p2 = p0.mul(1.04);
 
       if (p1.lt(p2)) {
         amountQuery = { $between: [p1.toString(), p2.toString()] };
