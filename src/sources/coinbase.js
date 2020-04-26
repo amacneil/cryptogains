@@ -115,6 +115,8 @@ module.exports = async function importCoinbase(config) {
         if (other.resource === 'account'
             || t.type === 'exchange_deposit'
             || t.type === 'exchange_withdrawal'
+            || t.type === 'pro_deposit'
+            || t.type === 'pro_withdrawal'
             || t.type === 'transfer'
             || t.type === 'vault_withdrawal') {
           transaction.type = 'transfer';
