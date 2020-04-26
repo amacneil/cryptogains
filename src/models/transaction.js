@@ -47,7 +47,10 @@ const Transaction = sequelize.define('transaction', {
         // if this fails then we received more than we sent
         // in that case we probably aren't dealing with simple fee accounting
         // maybe we matched this transfer with the wrong transaction?
-        assert.ok(feeAmount.lt(0));
+        if (feeAmount.gte(0)) {
+          console.log('\n', this.dataValues, otherTx.dataValues);
+          assert.fail('Transfer received more than was sent!');
+        }
 
         // adjust outgoing transfer amount to not include fee
         // (sourceAmount will remain the same)
