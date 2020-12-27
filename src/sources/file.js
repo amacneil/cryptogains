@@ -43,25 +43,27 @@ module.exports = async function importFile(config) {
     }
   }
 
-  // purge existing transactions for these sources to avoid duplicates
-  // we used to match on timestamp+amount, but that is not safe since
-  // polo sometimes creates multiple trades in the same second
-  // for the same amount
-  await sequelize.query(`
-    update transactions
-    set "transferTransactionId" = null
-    where "transferTransactionId" in (
-      select id from transactions
-      where source in (?)
-    )`,
-  { replacements: [Array.from(sourceTypes)] });
-  const [, deletedQuery] = await sequelize.query(`
-    delete from transactions
-    where source in (?)`,
-  { replacements: [Array.from(sourceTypes)] });
+  if (sourceTypes.size > 0) {
+    // purge existing transactions for these sources to avoid duplicates
+    // we used to match on timestamp+amount, but that is not safe since
+    // polo sometimes creates multiple trades in the same second
+    // for the same amount
+    await sequelize.query(`
+      update transactions
+      set "transferTransactionId" = null
+      where "transferTransactionId" in (
+        select id from transactions
+        where source in (?)
+      )`,
+    { replacements: [Array.from(sourceTypes)] });
+    const [, deletedQuery] = await sequelize.query(`
+      delete from transactions
+      where source in (?)`,
+    { replacements: [Array.from(sourceTypes)] });
 
-  if (deletedQuery.rowCount > 0) {
-    console.log(`\nWARNING: Deleted ${deletedQuery.rowCount} existing file transactions from ${Array.from(sourceTypes).join(', ')}`);
+    if (deletedQuery.rowCount > 0) {
+      console.log(`\nWARNING: Deleted ${deletedQuery.rowCount} existing file transactions from ${Array.from(sourceTypes).join(', ')}`);
+    }
   }
 
   for (const row of rows) {
