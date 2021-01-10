@@ -153,6 +153,25 @@ function findHoldTaxMin(tx, holds) {
   return null;
 }
 
+// LossThenFIFO
+// Sell in following order:
+// 1. Short-term losses
+// 2. Long-term losses
+// 3. Gains (FIFO)
+// Difference from 'TaxMin' is that we don't bother selling gains HIFO
+function findHoldLossThenFIFO(tx, holds) {
+  let hold;
+
+  hold = findSpecificLot(tx, holds, 'short', 'loss');
+  if (hold) return hold;
+
+  hold = findSpecificLot(tx, holds, 'long', 'loss');
+  if (hold) return hold;
+
+  // if no losses, default to FIFO
+  return holds[0];
+}
+
 // Estimate strategy: calculate the estimated tax due for each hold,
 // and select the hold which causes the lowest tax liability
 function findMinimizedTaxHold(amountRemaining, tx, holds, method) {
@@ -252,6 +271,19 @@ async function calculateGainsForCurrency(currency, config) {
       return;
     }
 
+    if (tx.transferTransactionId) {
+      console.error(
+        '\nnon-transfer transaction should not have transferTransactionId:',
+        tx.id,
+        tx.type,
+        tx.transferTransactionId,
+        tx.timestamp,
+        tx.currency,
+        tx.amount
+      );
+      return;
+    }
+
     if (tx.amount > 0) {
       // buy or receive: add to holds
       holds.push(tx);
@@ -277,6 +309,8 @@ async function calculateGainsForCurrency(currency, config) {
           hold = holds[holds.length - 1];
         } else if (method.method === 'TaxMin') {
           hold = findHoldTaxMin(tx, holds);
+        } else if (method.method === 'LossThenFIFO') {
+          hold = findHoldLossThenFIFO(tx, holds);
         } else if (method.method === 'Estimate') {
           hold = findMinimizedTaxHold(amountRemaining, tx, holds, method);
         } else {
@@ -312,6 +346,7 @@ async function calculateGainsForCurrency(currency, config) {
 
         // calculate gain
         amountRemaining = amountRemaining.sub(disposal.amount);
+        assert.ok(amountRemaining.gte(0));
         disposal.costBasis = disposal.amount.mul(hold.usdPrice);
         disposal.salePrice = disposal.amount.mul(tx.usdPrice);
         disposal.gain = disposal.salePrice.sub(disposal.costBasis);
