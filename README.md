@@ -1,5 +1,7 @@
 # cryptogains
 
+## NOTE: This script is not maintained. I do not recommend you use it.
+
 Calculates capital gains from cryptocurrency transactions to help file your taxes.
 
 ### quickstart
