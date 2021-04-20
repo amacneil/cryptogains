@@ -6,7 +6,9 @@ select
     then min("acquiredAt")::date::text
     else 'VARIOUS' end as "date_acquired",
   "disposedAt"::date as "date_sold",
-  term, count(id) as num_transactions, sum(amount) as amount,
+  term,
+  count(id) as num_transactions,
+  sum(amount) as quantity,
   sum("salePrice") as "sale_price",
   sum("costBasis") as "cost_basis",
   sum(gain) as gain
